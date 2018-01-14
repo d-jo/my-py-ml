@@ -19,7 +19,7 @@ def nodeRange(depth, height):
     with(gpu()):
         arr = [None]*height
         for i in range(0, height):
-            arr[i] = AnyNode(parent=None, height=i, depth=depth, weight=np.random.rand, bias=np.random.rand, parents=[], output=0.0, metab=np.random.rand)
+            arr[i] = AnyNode(parent=None, height=i, depth=depth, weight=np.random.rand(), bias=np.random.rand(), parents=[], output=0.0, metab=np.random.rand())
         Nodes[depth] = arr
 
 
@@ -49,15 +49,14 @@ def addOutput(d):
     outputLayers.append(d)
 
 def printOutput(gpun=0):
-    with(gpu(gpun)):
-        for num in outputLayers:
-            for node in Nodes[num]:
-                print(node.output)
+    for num in outputLayers:
+        for node in Nodes[num]:
+            print(node.output)
+    print("\n")
 
 def calculate(node):
     # step 1 build input vector
-    i = len(node.parents)
-    inputVectors = np.array([None]*i)
+    inputVectors = np.array([None]*len(node.parents))
     i = 0
     for n in node.parents:
         inputVectors[i] = n.output
@@ -65,20 +64,17 @@ def calculate(node):
         
     # step 2 calculate output based on input average (maybe other in future?)
     in_mean = np.mean(inputVectors)
-    print(type(in_mean))
-    print(inputVectors)
-    print(in_mean)
-    out = np.multiply(in_mean, node.weight)
+    out = np.multiply(in_mean[0], node.weight)
     return out
 
 # must be same shape as inputs, condensed l2r
 def prop(startingInput):
-    
-    for i in inputLayers:
-        for n in Nodes[i]:
-            n.output = startingInput[n.height]
+    print("start prop")
+    for noden in Nodes[0]:
+        noden.output = 0.5
 
     for i in range(1, len(Nodes)):
+        print("prop layer", i, len(Nodes[i]))
         for node in Nodes[i]:
             node.output = calculate(node)
 
@@ -88,12 +84,13 @@ nodeRange(1, 4)
 nodeRange(2, 2)
 addInput(0)
 addOutput(2)
-fullL2RLink(0,1)
-fullL2RLink(1,2)
+fullR2LLink(0,1)
+fullLink(1,2)
 printOutput()
 
-prop([1,1,1,1])
-
-printOutput()
+for i in range(0, 10):
+    prop([np.random.rand()]*4)
+    printOutput()
+    time.sleep(1)
 
 
