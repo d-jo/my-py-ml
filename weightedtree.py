@@ -13,6 +13,8 @@ inputLayers = []
 outputLayers = []
 
 Nodes = {}
+GlobalMEM = np.zeros(1024)
+
 
 
 def nodeRange(depth, height):
@@ -54,17 +56,18 @@ def printOutput(gpun=0):
             print(node.output)
     print("\n")
 
-def calculate(node):
-    # step 1 build input vector
-    inputVectors = np.array([None]*len(node.parents))
-    i = 0
-    for n in node.parents:
-        inputVectors[i] = n.output
-        i = i + 1
-        
+def calculate(nodeParents, node):
+    l = len(nodeParents)
+    GlobalMEM[0] = 0;
+    GlobalMEM[1] = 0;
+    for i in range(0, l):
+        GlobalMEM[0] += nodeParents[i].output
+        GlobalMEM[1] += 1
+
     # step 2 calculate output based on input average (maybe other in future?)
-    in_mean = np.mean(inputVectors)
-    out = np.multiply(in_mean[0], node.weight)
+    
+
+    out = np.multiply(np.divide(GlobalMEM[0], GlobalMEM[1]), node.weight)
     return out
 
 # must be same shape as inputs, condensed l2r
@@ -76,7 +79,7 @@ def prop(startingInput):
     for i in range(1, len(Nodes)):
         print("prop layer", i, len(Nodes[i]))
         for node in Nodes[i]:
-            node.output = calculate(node)
+            node.output = calculate(node.parents, node)
 
 
 nodeRange(0, 4)
@@ -89,7 +92,8 @@ fullLink(1,2)
 printOutput()
 
 for i in range(0, 10):
-    prop([np.random.rand()]*4)
+    with(gpu()):
+        prop([np.random.rand()]*4)
     printOutput()
     time.sleep(1)
 
