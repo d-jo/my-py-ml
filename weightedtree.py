@@ -83,18 +83,36 @@ def propNoArgs():
             node.output = calculate(node.parents, node)
 
 
+def mutation(expected):
+    l = len(Nodes)
+    for i in range(0, l):
+        for j in range(0, len(Nodes[l-i-1])):
+            node = Nodes[i][j]
+            mod = 0.0
+            if (node.output > expected[j]):
+                mod = -1.0
+            elif (node.output < expected[j]):
+                mod = 1.0
+            delta = np.multiply(node.metab, mod)
+            node.weight = np.add(node.weight, delta)
+            node.bias = np.multiply(metab, weight)
+            
+
+
+
 
 nodeRange(0, 4)
 nodeRange(1, 4)
 nodeRange(2, 4)
-fullR2LLink(0,1)
-fullR2LLink(1,2)
-fullR2LLink(2,0)
+fullLink(0,1)
+fullLink(1,2)
+fullLink(2,0)
 printOutput()
 for i in range(0,10):
     with(gpu()):
         propNoArgs()
         printOutput()
+        mutation([0.0,0.0,0.0,0.0])
 
 
 
